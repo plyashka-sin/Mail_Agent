@@ -69,10 +69,7 @@ def handle_interactive_decisions(results: list[AgentResult], interactive: bool) 
         return
 
     print()
-    print("=" * 68)
-    print("사용자 판단 입력")
-    print("각 항목에 대해 선택을 남깁니다. Enter만 누르면 보류 처리됩니다.")
-    print("=" * 68)
+    print("사용자 판단 필요")
     for index, result in enumerate(decision_items, start=1):
         email_item = result.email
         print()
