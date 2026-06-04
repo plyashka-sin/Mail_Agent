@@ -1,5 +1,4 @@
 import json
-from typing import Any
 from .config import REPORT_DIR
 from .utils import AgentResult, now_kst_text
 
@@ -62,9 +61,9 @@ def count_results(results: list[AgentResult]) -> dict[str, int]:
     return counts
 
 def print_progress(index: int, result: AgentResult) -> None:
-    print(f"{index}. {result.label}")
+    print(f"{index}. {result.label} \t [{result.email.get('subject', '')}]")
 
-def print_console_report(results: list[AgentResult], llm_provider: str) -> None:
+def print_console_report(results: list[AgentResult]) -> None:
     counts = count_results(results)
     print()
     print("이메일 에이전트 처리 리포트")

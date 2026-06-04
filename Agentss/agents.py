@@ -7,8 +7,7 @@ from .rule_engine import RuleEngine, make_friendly_reply
 from .llm_router import LLMRouter
 
 class MailFetchAgent:
-    def __init__(self, source: str, limit: int) -> None:
-        self.source = source
+    def __init__(self, limit: int) -> None:
         self.limit = limit
 
     async def fetch(self) -> list[dict[str, Any]]:
@@ -87,9 +86,6 @@ def suggest_alternative(email_item: dict[str, Any]) -> str:
     return "대안 일정 확인 필요"
 
 class ReplyAgent:
-    def __init__(self, source: str) -> None:
-        self.source = source
-
     async def handle(self, result: AgentResult) -> None:
         if result.category != "auto_reply" or not result.proposed_reply:
             return

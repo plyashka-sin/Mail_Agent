@@ -4,7 +4,7 @@ import asyncio
 import argparse
 
 
-from .config import REPORT_DIR, DUMMY_DIR
+from .config import DUMMY_DIR
 from .utils import AgentResult, write_json
 from .llm_router import LLMRouter
 from .agents import MailFetchAgent, ClassificationAgent, ScheduleAgent, ReplyAgent
@@ -13,7 +13,7 @@ from .report_agent import ReportAgent, print_progress, print_console_report, sum
 
 async def run_pipeline(args: argparse.Namespace) -> list[AgentResult]:
     ensure_runtime_files()
-    fetcher = MailFetchAgent(args.source, args.limit)
+    fetcher = MailFetchAgent(args.limit)
     
     llm_choice = getattr(args, "llm", "ask")
     if llm_choice == "ask":
@@ -31,7 +31,7 @@ async def run_pipeline(args: argparse.Namespace) -> list[AgentResult]:
             
     classifier = ClassificationAgent(LLMRouter(llm_choice))
     schedule_agent = ScheduleAgent()
-    reply_agent = ReplyAgent(args.source)
+    reply_agent = ReplyAgent()
     review_only = bool(getattr(args, "review_only", False))
 
     if review_only:
@@ -55,7 +55,7 @@ async def run_pipeline(args: argparse.Namespace) -> list[AgentResult]:
 
     handle_interactive_decisions(results, args.interactive)
     ReportAgent().save(results)
-    print_console_report(results, classifier.llm.last_provider)
+    print_console_report(results)
     return results
 
 def handle_interactive_decisions(results: list[AgentResult], interactive: bool) -> None:
@@ -86,8 +86,6 @@ def handle_interactive_decisions(results: list[AgentResult], interactive: bool) 
         result.user_note = note or "사용자 판단 기록됨"
 
 def ensure_runtime_files() -> None:
-    for path in (REPORT_DIR, DUMMY_DIR):
-        path.mkdir(parents=True, exist_ok=True)
     if not (DUMMY_DIR / "sent_mails.json").exists():
         write_json(DUMMY_DIR / "sent_mails.json", {"sent_mails": []})
 
