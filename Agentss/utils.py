@@ -13,7 +13,6 @@ class AgentResult:
     proposed_reply: str | None = None
     schedule_action: str = "none"
     schedule_conflict: dict[str, Any] | None = None
-    gmail_action: str = "none"
     user_decision: str | None = None
     user_note: str | None = None
     email: dict[str, Any] = field(default_factory=dict)
@@ -48,7 +47,7 @@ def clean_subject_for_reply(subject: str) -> str:
     return subject if subject.lower().startswith("re:") else f"Re: {subject}"
 
 def first_recipient(email: dict[str, Any]) -> str:
-    recipients = email.get("to") or ["me@gmail.com"]
+    recipients = email.get("to") or ["me@example.com"]
     if isinstance(recipients, list) and recipients:
         return recipients[0]
     return str(recipients)

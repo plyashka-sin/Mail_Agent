@@ -22,8 +22,11 @@ class ClassificationAgent:
     async def classify(self, email_item: dict[str, Any]) -> AgentResult:
         rule_hint = self.rules.classify_hint(email_item)
         llm_result = await self.llm.analyze(email_item, rule_hint)
-        if llm_result["category"] == "auto_reply" and not llm_result.get("proposed_reply"):
+
+
+        if llm_result["category"] == "auto_reply":
             llm_result["proposed_reply"] = make_friendly_reply(email_item)
+        
         return AgentResult(email=email_item, **llm_result)
 
 class ScheduleAgent:
@@ -90,7 +93,6 @@ class ReplyAgent:
         if result.category != "auto_reply" or not result.proposed_reply:
             return
         self.save_dummy_sent_mail(result)
-        result.gmail_action = "sent_dummy"
 
     def save_dummy_sent_mail(self, result: AgentResult) -> None:
         path = DUMMY_DIR / "sent_mails.json"

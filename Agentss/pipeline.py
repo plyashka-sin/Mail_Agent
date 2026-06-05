@@ -35,7 +35,11 @@ async def run_pipeline(args: argparse.Namespace) -> list[AgentResult]:
     review_only = bool(getattr(args, "review_only", False))
 
     if review_only:
-        print("검토 전용 모드: 메일을 읽고 분류하지만 Draft/스팸 DB 변경은 하지 않습니다.")
+        print("검토 전용 모드: 메일을 읽고 분류하지만 더미 메일 송신 기록은 남기지 않습니다.")
+        print()
+
+    if llm_choice == "ollama":
+        print("⏳ Ollama가 100초간 메일을 분류합니다. 잠시만 기다려 주세요...")
         print()
 
     emails = await fetcher.fetch()
@@ -46,9 +50,7 @@ async def run_pipeline(args: argparse.Namespace) -> list[AgentResult]:
 
     for index, result in enumerate(classified, start=1):
         result = schedule_agent.enrich(result)
-        if review_only and result.category == "auto_reply":
-            result.gmail_action = "review_only_no_draft"
-        elif not review_only:
+        if not review_only:
             await reply_agent.handle(result)
         print_progress(index, result)
         results.append(result)

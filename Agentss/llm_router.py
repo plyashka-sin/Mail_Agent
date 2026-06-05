@@ -7,6 +7,9 @@ import urllib.error
 from typing import Any
 CATEGORY_LABELS = ["spam", "no_response", "decision_required", "auto_reply", "schedule_update"]
 
+
+
+
 class LLMProvider:
     name = "base"
     def is_available(self) -> bool: return False
@@ -19,7 +22,7 @@ class OllamaProvider(LLMProvider):
     def __init__(self, force: bool = False) -> None:
         self.force = force
         self.base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-        self.model = os.getenv("OLLAMA_MODEL", "llama3.1")
+        self.model = os.getenv("OLLAMA_MODEL", "llama3.1") # 여기서 ollama모델 설정
 
     def is_available(self) -> bool:
         return self.force or os.getenv("LLM_PROVIDER", "").lower() == "ollama" or self.server_is_running()
@@ -48,20 +51,22 @@ class OllamaProvider(LLMProvider):
             headers={"Content-Type": "application/json"},
             method="POST",
         )
-        with urllib.request.urlopen(req, timeout=20) as resp:
+        with urllib.request.urlopen(req, timeout=100) as resp: # 응답시간 여유 100초
             data = json.loads(resp.read().decode("utf-8"))
         return json.loads(data.get("response", "{}"))
 
+
+# llm_router.py 파일 수정
 class LLMRouter:
     def __init__(self, provider_name: str | None = None) -> None:
         provider_name = (provider_name or os.getenv("LLM_PROVIDER", "auto")).lower()
-        ordered: list[LLMProvider]
+        
+        # 무조건 OllamaProvider(force=True)가 우선하도록 수정
         if provider_name == "rules":
             ordered = []
-        elif provider_name == "ollama":
-            ordered = [OllamaProvider(force=True)]
         else:
-            ordered = [OllamaProvider()]
+            ordered = [OllamaProvider(force=True)] # 👈 기존의 [OllamaProvider()]를 force=True로 변경
+            
         self.providers = ordered
         self.requested_provider = provider_name
         self.last_provider = "rules"
@@ -74,10 +79,14 @@ class LLMRouter:
                 result = await provider.analyze(email_item, rule_hint)
                 self.last_provider = provider.name
                 return normalize_llm_result(result, rule_hint)
-            except (OSError, TimeoutError, urllib.error.URLError, json.JSONDecodeError, KeyError):
+            
+            except (OSError, TimeoutError, urllib.error.URLError, json.JSONDecodeError, KeyError) as e:
+                print(f"\n[Ollama 에러 발생]: {e}") # 👈 이 줄을 추가하여 어떤 에러인지 눈으로 확인해보세요.
                 continue
+
         self.last_provider = "rules"
         return rule_hint
+    
 
 def make_llm_prompt(email_item: dict[str, Any], rule_hint: dict[str, Any]) -> str:
     schema = {
