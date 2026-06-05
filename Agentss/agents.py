@@ -25,6 +25,7 @@ class ClassificationAgent:
 
 
         if llm_result["category"] == "auto_reply":
+            llm_result["reason"] = rule_hint.get("reason", "친근한 개인 메일이며 간단한 회신 가능") # 깨졌을 때 수정
             llm_result["proposed_reply"] = make_friendly_reply(email_item)
         
         return AgentResult(email=email_item, **llm_result)

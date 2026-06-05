@@ -82,6 +82,8 @@ class LLMRouter:
             
             except (OSError, TimeoutError, urllib.error.URLError, json.JSONDecodeError, KeyError) as e:
                 print(f"\n[Ollama 에러 발생]: {e}") # 👈 이 줄을 추가하여 어떤 에러인지 눈으로 확인해보세요.
+                print("규칙기반모델이 이어서 분류합니다.")
+                print()
                 continue
 
         self.last_provider = "rules"
